@@ -36,6 +36,18 @@ export const MockDB = {
     });
   },
 
+  updateResident: (id: string, updates: Partial<Resident>): Promise<void> => {
+    return new Promise((resolve) => {
+      const stored = localStorage.getItem(STORAGE_KEY_RESIDENTS);
+      const currentList = stored ? JSON.parse(stored) : INITIAL_RESIDENTS;
+      const newList = currentList.map((r: Resident) => 
+        r.id === id ? { ...r, ...updates } : r
+      );
+      localStorage.setItem(STORAGE_KEY_RESIDENTS, JSON.stringify(newList));
+      setTimeout(() => resolve(), 500);
+    });
+  },
+
   deleteResident: (id: string): Promise<void> => {
     return new Promise((resolve) => {
       const stored = localStorage.getItem(STORAGE_KEY_RESIDENTS);

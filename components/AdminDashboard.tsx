@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { DB } from '../services/database';
 import { Resident, ActivityLog, WhatsAppGroup } from '../types';
@@ -30,15 +31,21 @@ import {
   Loader2,
   Trash2,
   AlertCircle,
-  Camera
+  Camera,
+  Edit
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'residents' | 'whatsapp' | 'logs' | 'gallery'>('residents');
   const [residents, setResidents] = useState<Resident[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  
+  // Add/Edit Modal State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newResident, setNewResident] = useState<Partial<Resident>>({});
+  
   const [error, setError] = useState<string | null>(null);
   
   // Delete State
@@ -108,18 +115,48 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleAddResident = async (e: React.FormEvent) => {
+  const handleAddClick = () => {
+    setIsEditing(false);
+    setEditingId(null);
+    setNewResident({});
+    setShowAddModal(true);
+  };
+
+  const handleEditClick = (resident: Resident) => {
+    setIsEditing(true);
+    setEditingId(resident.id);
+    setNewResident({
+        name: resident.name,
+        roomNumber: resident.roomNumber,
+        whatsappGroupId: resident.whatsappGroupId,
+        photoUrl: resident.photoUrl,
+        notes: resident.notes
+    });
+    setShowAddModal(true);
+  };
+
+  const handleSaveResident = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (newResident.name && newResident.roomNumber && newResident.whatsappGroupId) {
-      try {
-        await DB.addResident(newResident as Resident);
+    
+    if (!newResident.name || !newResident.roomNumber || !newResident.whatsappGroupId) {
+        setError("Please fill in all required fields.");
+        return;
+    }
+
+    try {
+        if (isEditing && editingId) {
+            await DB.updateResident(editingId, newResident);
+        } else {
+            await DB.addResident(newResident as Resident);
+        }
         setShowAddModal(false);
         setNewResident({});
+        setIsEditing(false);
+        setEditingId(null);
         refreshData();
-      } catch (err: any) {
-        setError(err.message || "Failed to add resident");
-      }
+    } catch (err: any) {
+        setError(err.message || "Failed to save resident");
     }
   };
 
@@ -132,7 +169,7 @@ const AdminDashboard: React.FC = () => {
         refreshData();
     } catch (err: any) {
         setError(err.message || "Failed to delete resident");
-        setResidentToDelete(null); // Close modal even on error to show the error message on dashboard
+        setResidentToDelete(null);
     } finally {
         setIsDeleting(false);
     }
@@ -296,7 +333,7 @@ const AdminDashboard: React.FC = () => {
         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
           <h2 className="text-lg font-bold text-slate-800 dark:text-white">Resident Directory</h2>
           <button 
-            onClick={() => setShowAddModal(true)}
+            onClick={handleAddClick}
             className="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center space-x-2 hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-200 dark:hover:shadow-none transition-all transform active:scale-95"
           >
             <Plus className="w-4 h-4" />
@@ -334,6 +371,13 @@ const AdminDashboard: React.FC = () => {
                        <span className="text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{r.whatsappGroupId || 'Not Connected'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
+                        <button 
+                            onClick={() => handleEditClick(r)}
+                            className="text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 p-2 rounded-lg transition-colors"
+                            title="Edit Resident"
+                        >
+                            <Edit className="w-5 h-5" />
+                        </button>
                         <button 
                             onClick={() => setResidentToDelete(r)}
                             className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors"
@@ -816,12 +860,12 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'logs' && renderLogsTab()}
       </div>
 
-      {/* Add Resident Modal */}
+      {/* Add/Edit Resident Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl max-w-md w-full p-8 border border-white/20 dark:border-slate-800 transform transition-all scale-100">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Add New Resident</h3>
-            <form onSubmit={handleAddResident} className="space-y-5">
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{isEditing ? 'Edit Resident' : 'Add New Resident'}</h3>
+            <form onSubmit={handleSaveResident} className="space-y-5">
               
               {/* Profile Picture Upload */}
               <div className="flex justify-center mb-6">
@@ -894,7 +938,7 @@ const AdminDashboard: React.FC = () => {
                   type="submit"
                   className="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 font-bold shadow-lg shadow-brand-200 dark:shadow-none transition-all transform active:scale-95"
                 >
-                  Save Resident
+                  {isEditing ? 'Update Resident' : 'Save Resident'}
                 </button>
               </div>
             </form>

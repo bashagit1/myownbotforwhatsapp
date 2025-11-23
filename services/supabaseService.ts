@@ -1,12 +1,13 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Resident, ActivityLog, WhatsAppGroup } from '../types';
 import { BotStatusResponse } from './database';
 
-// CONFIGURATION FROM ENV VARIABLES
-const env = (import.meta as any).env;
-const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
-const BOT_SERVER_URL = env.VITE_BOT_SERVER_URL || 'http://localhost:3001';
+// CONFIGURATION
+// We check import.meta.env first (for Netlify), then fall back to your provided credentials.
+const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL || 'https://zaiektkvhjfndfebolao.supabase.co';
+const SUPABASE_ANON_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphaWVrdGt2aGpmbmRmZWJvbGFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTM3NTEsImV4cCI6MjA3OTM2OTc1MX0.34BB18goOvIpwPci2u25JLoC7l9PRfanpC9C4DS4RfQ';
+const BOT_SERVER_URL = (import.meta as any).env.VITE_BOT_SERVER_URL || 'http://localhost:3001';
 
 // Initialize Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -62,6 +63,25 @@ export const LiveDB = {
       whatsappGroupId: data.whatsapp_group_id,
       photoUrl: data.photo_url
     };
+  },
+
+  updateResident: async (id: string, updates: Partial<Resident>): Promise<void> => {
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.roomNumber) dbUpdates.room_number = updates.roomNumber;
+    if (updates.whatsappGroupId) dbUpdates.whatsapp_group_id = updates.whatsappGroupId;
+    if (updates.photoUrl !== undefined) dbUpdates.photo_url = updates.photoUrl;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+
+    const { error } = await supabase
+      .from('residents')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase Error updating resident:', error);
+      throw new Error(error.message);
+    }
   },
 
   deleteResident: async (id: string): Promise<void> => {
