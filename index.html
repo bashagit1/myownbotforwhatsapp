@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
-        darkMode: 'class', // Enabled manual dark mode toggling
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -56,62 +56,37 @@
       }
     </script>
     <style>
-      /* Custom scrollbar for nicer aesthetic */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-      /* Dark mode scrollbar */
-      .dark ::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
-      .dark ::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      .dark ::-webkit-scrollbar-thumb { background: #475569; }
+      .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
       
-      body {
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-      
-      /* Light Mode Gradient */
-      body:not(.dark) {
-        background: linear-gradient(135deg, #fdfbf7 0%, #f0f9ff 100%);
-        background-attachment: fixed;
-      }
-
-      /* Dark Mode Gradient */
-      body.dark {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        background-attachment: fixed;
-        color: #f1f5f9;
-      }
+      body { transition: background-color 0.3s ease, color 0.3s ease; }
+      body:not(.dark) { background: linear-gradient(135deg, #fdfbf7 0%, #f0f9ff 100%); background-attachment: fixed; }
+      body.dark { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); background-attachment: fixed; color: #f1f5f9; }
     </style>
   <script type="importmap">
 {
   "imports": {
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.45.0",
-    "module": "https://aistudiocdn.com/module@^2.0.0",
-    "jszip": "https://aistudiocdn.com/jszip@^3.10.1"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.84.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "jszip": "https://aistudiocdn.com/jszip@^3.10.1",
+    "module": "https://aistudiocdn.com/module@^2.0.0"
   }
 }
 </script>
 </head>
   <body class="text-slate-800 dark:text-slate-100 antialiased">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

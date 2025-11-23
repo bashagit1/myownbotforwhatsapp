@@ -1,12 +1,12 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Resident, ActivityLog, WhatsAppGroup } from '../types';
 import { BotStatusResponse } from './database';
 
-// CONFIGURATION
-const SUPABASE_URL = 'https://zaiektkvhjfndfebolao.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphaWVrdGt2aGpmbmRmZWJvbGFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3OTM3NTEsImV4cCI6MjA3OTM2OTc1MX0.34BB18goOvIpwPci2u25JLoC7l9PRfanpC9C4DS4RfQ';
-const BOT_SERVER_URL = 'http://localhost:3001'; // Address where server/bot.js is running locally
+// CONFIGURATION FROM ENV VARIABLES
+const env = (import.meta as any).env;
+const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
+const BOT_SERVER_URL = env.VITE_BOT_SERVER_URL || 'http://localhost:3001';
 
 // Initialize Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -65,7 +65,7 @@ export const LiveDB = {
   },
 
   deleteResident: async (id: string): Promise<void> => {
-    // 1. Delete logs first to handle foreign key constraints manually (if cascading isn't set up in DB)
+    // 1. Delete logs first to handle foreign key constraints manually
     const { error: logsError } = await supabase
         .from('activity_logs')
         .delete()
@@ -114,7 +114,7 @@ export const LiveDB = {
 
     const newLog = data;
     
-    // Fetch resident group ID freshly to ensure accuracy
+    // Fetch resident group ID
     const { data: residentData } = await supabase
         .from('residents')
         .select('whatsapp_group_id')
@@ -123,12 +123,11 @@ export const LiveDB = {
         
     const residentGroupId = residentData?.whatsapp_group_id;
 
-    // 2. Trigger WhatsApp Bot (The "Agent")
+    // 2. Trigger WhatsApp Bot
     let finalStatus = 'PENDING';
     
     if (residentGroupId && logData.aiGeneratedMessage) {
       try {
-        // Note: This fetch calls your local Node.js bot server
         const response = await fetch(`${BOT_SERVER_URL}/send-update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,12 +144,12 @@ export const LiveDB = {
             finalStatus = 'FAILED';
         }
       } catch (err) {
-        console.warn("Bot server unreachable. Log saved but WhatsApp not sent.", err);
+        console.warn("Bot server unreachable.", err);
         finalStatus = 'FAILED';
       }
     }
 
-    // Update status in DB if changed
+    // Update status in DB
     if (finalStatus !== 'PENDING') {
         await supabase
             .from('activity_logs')
